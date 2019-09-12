@@ -10,181 +10,214 @@
  */
 
 import { Context } from "../IContext";
-// import { RequestMethod } from "../RequestMethod";
 
 import { Middleware } from "./IMiddleware";
 import { MiddlewareControl } from "./MiddlewareControl";
-// import { cloneRequestWithNewUrl, setRequestHeader } from "./MiddlewareUtil";
+import { generateUUID } from "./MiddlewareUtil";
+import { httpStatusCode, methodStatusCode } from "./options/TestingHandlerData";
 import { TestingHandlerOptions } from "./options/TestingHandlerOptions";
-// import { FeatureUsageFlag, TelemetryHandlerOptions } from "./options/TelemetryHandlerOptions";
+import { TestingStrategy } from "./options/TestingStrategy";
 
 export class TestingHandler implements Middleware {
-	/*    private options: TestingHandlerOptions;
-
-    public constructor(options: TestingHandlerOptions = new TestingHandlerOptions()) {
-		this.options = options;
-    }
-    
-*/
-	private responseMap: Map<string, Map<string, string>> = new Map([
-		[
-			"2xx",
-			new Map([
-				[
-					"responseHeader",
-					`{
-					"Cache-Control" : "private",
-					"Transfer-Encoding" : "chunked",
-					"Content-Type" : "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8",
-					"Content-Encoding" : "gzip",
-					"Vary" : "Accept-Encoding",
-					"request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"client-request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"x-ms-ags-diagnostic" : "{"ServerInfo":{"DataCenter":"South India","Slice":"SliceC","Ring":"4","ScaleUnit":"000","RoleInstance":"AGSFE_IN_0","ADSiteName":"INS"}}",
-					"OData-Version" : 4.0,
-					"Duration" : 103.8879,
-					"Strict-Transport-Security" : "max-age=31536000",
-					"Date" : "Tue, 20 Aug 2019 09:08:47 GMT"
-					}`,
-				],
-				["responseBody", ""],
-			]),
-		],
-		[
-			"3xx",
-			new Map([
-				[
-					"responseHeader",
-					`{
-					"Cache-Control" : "private",
-					"Transfer-Encoding" : "chunked",
-					"Content-Type" : "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8",
-					"Content-Encoding" : "gzip",
-					"Vary" : "Accept-Encoding",
-					"request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"client-request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"x-ms-ags-diagnostic" : "{"ServerInfo":{"DataCenter":"South India","Slice":"SliceC","Ring":"4","ScaleUnit":"000","RoleInstance":"AGSFE_IN_0","ADSiteName":"INS"}}",
-					"OData-Version" : 4.0,
-					"Duration" : 103.8879,
-					"Strict-Transport-Security" : "max-age=31536000",
-					"Date" : "Tue, 20 Aug 2019 09:08:47 GMT"
-				}`,
-				],
-
-				["responseBody", ""],
-			]),
-		],
-		[
-			"4xx",
-			new Map([
-				[
-					"responseHeader",
-					`{
-					"Cache-Control" : "private",
-					"Transfer-Encoding" : "chunked",
-					"Content-Type" : "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8",
-					"request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"client-request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"x-ms-ags-diagnostic" : "{"ServerInfo":{"DataCenter":"South India","Slice":"SliceC","Ring":"4","ScaleUnit":"000","RoleInstance":"AGSFE_IN_0","ADSiteName":"INS"}}",
-					"Duration" : 103.8879,
-					"Strict-Transport-Security" : "max-age=31536000",
-					"Date" : "Tue, 20 Aug 2019 09:08:47 GMT"
-				}`,
-				],
-
-				[
-					"responseBody",
-					`{
-					"error": {
-						"code": "BadRequest",
-						"message": "",
-						"innerError": {
-							"request-id": "c1e7bf3f-74e9-4ba7-a0f6-835e065f8f45",
-							"date": "2019-08-20T10:41:33"
-						}
-					}
-				}`,
-				],
-			]),
-		],
-		[
-			"429",
-			new Map([
-				[
-					"responseHeader",
-					`{
-					"Cache-Control" : "private",
-					"Transfer-Encoding" : "chunked",
-					"Content-Type" : "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8",
-					"request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"client-request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"x-ms-ags-diagnostic" : "{"ServerInfo":{"DataCenter":"South India","Slice":"SliceC","Ring":"4","ScaleUnit":"000","RoleInstance":"AGSFE_IN_0","ADSiteName":"INS"}}",
-					"Duration" : 103.8879,
-					"Strict-Transport-Security" : "max-age=31536000",
-					"timeout" : 300,
-					"Date" : "Tue, 20 Aug 2019 09:08:47 GMT"
-				}`,
-				],
-
-				[
-					"responseBody",
-					`{
-					"error": {
-						"code": "BadRequest",
-						"message": "",
-						"innerError": {
-							"request-id": "c1e7bf3f-74e9-4ba7-a0f6-835e065f8f45",
-							"date": "2019-08-20T10:41:33"
-						}
-					}
-				}`,
-				],
-			]),
-		],
-		[
-			"5xx",
-			new Map([
-				[
-					"responseHeader",
-					`{
-					"Cache-Control" : "private",
-					"Transfer-Encoding" : "chunked",
-					"Content-Type" : "application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8",
-					"request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"client-request-id" : "8f98c2b2-7454-4894-8833-f6dff52a4b56",
-					"x-ms-ags-diagnostic" : "{"ServerInfo":{"DataCenter":"South India","Slice":"SliceC","Ring":"4","ScaleUnit":"000","RoleInstance":"AGSFE_IN_0","ADSiteName":"INS"}}",
-					"Duration" : 103.8879,
-					"Strict-Transport-Security" : "max-age=31536000",
-					"Date" : "Tue, 20 Aug 2019 09:08:47 GMT"
-				}`,
-				],
-
-				[
-					"responseBody",
-					`{
-					"error": {
-						"code": "BadRequest",
-						"message": "",
-						"innerError": {
-							"request-id": "c1e7bf3f-74e9-4ba7-a0f6-835e065f8f45",
-							"date": "2019-08-20T10:41:33"
-						}
-					}
-				}`,
-				],
-			]),
-		],
-	]);
-
-	// private map2xx: Map<string, string> = ;
-
-	// private map3xx: Map<string, string> = ;
-
 	/**
 	 * @private
 	 * A member holding options to customize the handler behavior
 	 */
+
 	private options: TestingHandlerOptions;
+
+	public statusCode: number;
+
+	public statusMessage: string;
+
+	// the mode of testing handler
+	public testingStrategy: TestingStrategy;
+
+	// container for the manual map that has been written by the client
+	public manualMap: Map<string, Map<string, number>>;
+
+	// dummy url that we are using
+	public redirectURL: string = "https://dummylocation.microsoft.com";
+
+	public constructor(options: TestingHandlerOptions = new TestingHandlerOptions(), manualMap?: Map<string, Map<string, number>>) {
+		this.options = options;
+		this.manualMap = manualMap;
+	}
+
+	/**
+	 * @private
+	 * Generates responseHeader
+	 * @param {number} statusCode - the status code to be returned for the request
+	 * @param {string} statusMessage - the status message to be returned for the request
+	 * @param {string} requestID - request id
+	 * @param {Date} requestDate - date of the request
+	 * @returns response Header
+	 */
+	private createResponseHeader(statusCode: number, statusMessage: string, requestID: string, requestDate: Date) {
+		// creates a responseHeader based on the status code
+		const responseHeader: any = {};
+
+		responseHeader["Cache-Control"] = "private";
+		responseHeader["Transfer-Encoding"] = "chunked";
+		responseHeader["request-id"] = requestID;
+		responseHeader["client-request-id"] = requestID;
+		responseHeader["x-ms-ags-diagnostic"] = "";
+		responseHeader.Date = requestDate;
+		responseHeader["Strict-Transport-Security"] = "";
+
+		if (statusCode === 301 || statusCode === 302 || statusCode === 303 || statusCode === 307 || statusCode === 308) {
+			// adding location header for only these cases as done for the redirect handler
+			responseHeader.Location = this.redirectURL;
+		}
+
+		if (statusCode === 429) {
+			// throttling case has to have a timeout scenario
+			responseHeader.timeout = 300;
+		}
+		return responseHeader;
+	}
+
+	/**
+	 * @private
+	 * Generates responseBody
+	 * @param {number} statusCode - the status code to be returned for the request
+	 * @param {string} statusMessage - the status message to be returned for the request
+	 * @param {string} requestID - request id
+	 * @param {Date} errDate - date of the request
+	 * @returns response body
+	 */
+	private createResponseBody(statusCode: number, statusMessage: string, requestID: string, requestDate: Date) {
+		// response body gets created as empty for passed cases
+		// response body contains error field for failure scenarios
+		let responseBody;
+		if (statusCode >= 400) {
+			const codeMessage: string = httpStatusCode[statusCode];
+			const errMessage: string = statusMessage;
+
+			responseBody = {
+				error: {
+					code: codeMessage,
+					message: errMessage,
+					innerError: {
+						"request-id": requestID,
+						date: requestDate,
+					},
+				},
+			};
+		} else {
+			responseBody = {};
+		}
+
+		return responseBody;
+	}
+
+	/**
+	 * @private
+	 * creates a response object out of responseHeader and responseBody
+	 * @param {TestingHandlerOptions} testingHandlerOptions - The TestingHandlerOptions object
+	 * @param {string} requestURL - the URL for the request
+	 * @returns Response object
+	 */
+	private createResponse(testingHandlerOptions: TestingHandlerOptions, requestURL: string): Response {
+		try {
+			// creates a response Object out of responseHeader and responseBody
+			let responseBody;
+			let responseHeader;
+			let requestID: string;
+			let requestDate: Date;
+
+			requestID = generateUUID();
+			requestDate = new Date();
+			responseHeader = this.createResponseHeader(testingHandlerOptions.statusCode, testingHandlerOptions.statusMessage, requestID, requestDate);
+			responseBody = this.createResponseBody(testingHandlerOptions.statusCode, testingHandlerOptions.statusMessage, requestID, requestDate);
+			const init = { url: requestURL, status: testingHandlerOptions.statusCode, statusText: testingHandlerOptions.statusMessage, headers: responseHeader };
+			const response = new Response(responseBody, init);
+
+			return response;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	/**
+	 * @private
+	 * Fetches a random status code for the RANDOM mode from the predefined array
+	 * @param {string} requestMethod - the API method for the request
+	 * @returns the random status code
+	 */
+	private getStatusCode(requestMethod: string): number {
+		try {
+			// returns random status code for the random method from the array present
+			const statusCodeArray: number[] = methodStatusCode[requestMethod] as number[];
+			return statusCodeArray[Math.floor(Math.random() * statusCodeArray.length)];
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	/**
+	 * @private
+	 * To fetch the relative URL out of the complete URL
+	 * @param {RegExp} pattern - the regex pattern for the URL
+	 * @param {string} urlMethod - the complete URL
+	 * @returns the relative URL
+	 */
+	private getRelativeURL(pattern: RegExp, urlMethod: string): string {
+		// just helps in getting the relative URL from the complete url, just to match the url as in manual map
+		urlMethod = urlMethod.replace(pattern, "");
+		return urlMethod;
+	}
+
+	/**
+	 * @private
+	 * To fetch the status code from the map(if needed), then returns response by calling createResponse
+	 * @param {TestingHandlerOptions} testingHandlerOptions - The TestingHandlerOptions object
+	 * @param {string} requestURL - the URL for the request
+	 * @param {string} requestMethod - the API method for the request
+	 * @returns Response object
+	 */
+	private setStatusCode(testingHandlerOptions: TestingHandlerOptions, requestURL: string, requestMethod: string): Response {
+		try {
+			testingHandlerOptions.statusMessage = "Some error happened";
+			if (testingHandlerOptions.testingStrategy === TestingStrategy.MANUAL) {
+				if (testingHandlerOptions.statusCode === undefined) {
+					try {
+						const urlMethod = this.getRelativeURL(new RegExp("http(s)://graph.microsoft.com/[^/]*", "g"), requestURL);
+						testingHandlerOptions.statusCode = this.manualMap.get(urlMethod).get(requestMethod);
+					} catch (error) {
+						const urlMethod = this.getRelativeURL(new RegExp("http(s)://graph.microsoft.com/[^/]*", "g"), requestURL);
+						this.manualMap.forEach((value: Map<string, number>, key: string) => {
+							const regexUrl = new RegExp(key);
+							if (regexUrl.test(urlMethod)) {
+								testingHandlerOptions.statusCode = this.manualMap.get(key).get(requestMethod);
+							}
+						});
+
+						if (testingHandlerOptions.statusCode === undefined) {
+							if (requestURL === this.redirectURL) {
+								testingHandlerOptions.statusCode = 404;
+							} else {
+								throw new Error("API not available in map");
+							}
+						}
+					}
+				} else {
+					if (requestURL === this.redirectURL) {
+						const statusCode: number = testingHandlerOptions.statusCode;
+						if (statusCode === 301 || statusCode === 302 || statusCode === 303 || statusCode === 307 || statusCode === 308) {
+							testingHandlerOptions.statusCode = 404;
+						}
+					}
+				}
+			} else if (testingHandlerOptions.testingStrategy === TestingStrategy.RANDOM) {
+				testingHandlerOptions.statusCode = this.getStatusCode(requestMethod);
+			}
+
+			return this.createResponse(testingHandlerOptions, requestURL);
+		} catch (error) {
+			throw error;
+		}
+	}
 
 	/**
 	 * @private
@@ -203,22 +236,6 @@ export class TestingHandler implements Middleware {
 		return options;
 	}
 
-	private async createResponse(): Promise<any> {
-		try {
-			const responseBody = "Test Response";
-			const header1 = `content-type: application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8
-                        cache-control: private
-                        client-request-id: b1ee53b1-793d-4a98-a057-ce7f3a5437e9
-                        request-id: b1ee53b1-793d-4a98-a057-ce7f3a5437e9`;
-
-			const init = { status: 200, statusText: "ok", header: header1 };
-			const response = new Response(responseBody, init);
-
-			return response;
-		} catch (error) {
-			throw error;
-		}
-	}
 	/**
 	 * @public
 	 * @async
@@ -228,9 +245,8 @@ export class TestingHandler implements Middleware {
 	 */
 	public async execute(context: Context): Promise<void> {
 		try {
-			// write the things to be executed in testing Handler
-			// Have to create a map for the purpose of Headers and body
-			context.response = await this.createResponse();
+			const testingHandlerOptions = this.getOptions(context);
+			context.response = this.setStatusCode(testingHandlerOptions, context.request as string, context.options.method as string);
 			return;
 		} catch (error) {
 			throw error;

@@ -6,11 +6,13 @@
  */
 
 /**
- * @module RetryHandlerOptions
+ * @module TestingHandlerOptions
  */
 
-// import { FetchOptions } from "../../IFetchOptions";
+import { FetchOptions } from "../../IFetchOptions";
+
 import { MiddlewareOptions } from "./IMiddlewareOptions";
+import { methodStatusCode } from "./TestingHandlerData";
 import { TestingStrategy } from "./TestingStrategy";
 
 export class TestingHandlerOptions implements MiddlewareOptions {
@@ -22,17 +24,6 @@ export class TestingHandlerOptions implements MiddlewareOptions {
 
 	public constructor(testingStrategy: TestingStrategy = TestingStrategy.RANDOM, statusCode?: number) {
 		this.testingStrategy = testingStrategy;
-
-		if (this.testingStrategy === TestingStrategy.MANUAL) {
-			this.statusCode = statusCode;
-			this.statusMessage = "Status Message here";
-		}
-		/* else if(this.testingStrategy === TestingStrategy.RANDOM) {
-            
-        }
-        else {
-
-        }
-	} */
+		this.statusCode = statusCode;
 	}
 }
