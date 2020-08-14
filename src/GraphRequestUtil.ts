@@ -66,6 +66,33 @@ export class PathUtils {
 	private static shortPathRe = /(.*?)((?=\?|$))/g;
 	private static queryRe = /\?.*/g;
 
+	private static getPathFromFullPath(url: string): string {
+		const version = PathUtils.getVersionFrom(url);
+		const path = url.match(PathUtils.fullPathRe);
+		if (!path) {
+			return;
+		}
+
+		return path.shift().replace(version, "");
+	}
+
+	private static getPathFromShortPath(url: string) {
+		const path = url.match(PathUtils.shortPathRe);
+
+		if (!path) {
+			return;
+		}
+
+		return path.shift();
+	}
+
+	/**
+	 * Matches the host from url. Given then url https://graph.microsoft.com/v1.0/me/events
+	 * it will return graph.microsoft.com.
+	 *
+	 * @param url
+	 * @returns host
+	 */
 	public static getHostFrom(url: string): string {
 		const host = url.match(PathUtils.hostRe);
 
@@ -76,6 +103,13 @@ export class PathUtils {
 		return host.shift();
 	}
 
+	/**
+	 * Matches the version from url. Given the url https://graph.microsoft.com/v1.0/me/events,
+	 * it will return the version, v1.0 or beta.
+	 *
+	 * @param url
+	 * @returns version
+	 */
 	public static getVersionFrom(url: string): string {
 		const version = url.match(PathUtils.versionRe);
 
@@ -86,6 +120,14 @@ export class PathUtils {
 		return version.shift();
 	}
 
+	/**
+	 * Matches the path from url. If the user passes a full url like
+	 * https://graph.microsoft.com/v1.0/me/events it will return v1.0/me
+	 * And when the users passes a short url like me/events it will return me/events
+	 *
+	 * @param url
+	 * @returns path
+	 */
 	public static getPathFrom(url: string) {
 		const isFullPath: boolean = url.includes("microsoft");
 
@@ -96,26 +138,13 @@ export class PathUtils {
 		}
 	}
 
-	public static getPathFromFullPath(url: string): string {
-		const version = PathUtils.getVersionFrom(url);
-		const path = url.match(PathUtils.fullPathRe);
-		if (!path) {
-			return;
-		}
-
-		return path.shift().replace(version, "");
-	}
-
-	public static getPathFromShortPath(url: string) {
-		const path = url.match(PathUtils.shortPathRe);
-
-		if (!path) {
-			return;
-		}
-
-		return path.shift();
-	}
-
+	/**
+	 * Matches the query string from url. Given https://graph.microsoft.com/v1.0/me/events?queryString
+	 * or me/events/?queryString it will return ?queryString.
+	 *
+	 * @param url
+	 * @returns queryString
+	 */
 	public static getQueryStringFrom(url: string): string {
 		const queryString = url.match(PathUtils.queryRe);
 
