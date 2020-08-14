@@ -58,3 +58,70 @@ export const serializeContent = (content: any): any => {
 	}
 	return content;
 };
+
+export class PathUtils {
+	private static hostRe = /([a-z]+.microsoft.[a-z]+)/g;
+	private static versionRe = /(beta|v1.0)/g;
+	private static fullPathRe = /((v1.0|beta).*?(?=\?|$))/g;
+	private static shortPathRe = /(.*?)((?=\?|$))/g;
+	private static queryRe = /\?.*/g;
+
+	public static getHostFrom(url: string): string {
+		const host = url.match(PathUtils.hostRe);
+
+		if (!host) {
+			return "graph.microsoft.com";
+		}
+
+		return host.shift();
+	}
+
+	public static getVersionFrom(url: string): string {
+		const version = url.match(PathUtils.versionRe);
+
+		if (!version) {
+			return "v1.0";
+		}
+
+		return version.shift();
+	}
+
+	public static getPathFrom(url: string) {
+		const isFullPath: boolean = url.includes("microsoft");
+
+		if (isFullPath) {
+			return PathUtils.getPathFromFullPath(url);
+		} else {
+			return PathUtils.getPathFromShortPath(url);
+		}
+	}
+
+	public static getPathFromFullPath(url: string): string {
+		const version = PathUtils.getVersionFrom(url);
+		const path = url.match(PathUtils.fullPathRe);
+		if (!path) {
+			return;
+		}
+
+		return path.shift().replace(version, "");
+	}
+
+	public static getPathFromShortPath(url: string) {
+		const path = url.match(PathUtils.shortPathRe);
+
+		if (!path) {
+			return;
+		}
+
+		return path.shift();
+	}
+
+	public static getQueryStringFrom(url: string): string {
+		const queryString = url.match(PathUtils.queryRe);
+
+		if (!queryString) {
+			return;
+		}
+		return queryString.shift().replace("?", "");
+	}
+}
